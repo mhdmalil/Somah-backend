@@ -16,15 +16,8 @@ if (!botToken) {
 // Initialize bot
 const bot = new TelegramBot(botToken, { polling: true });
 
-// This will be set from environment variable or dynamically when the bot receives messages from the group
-let CHAT_ID = process.env.TELEGRAM_CHAT_ID || null;
-
-// Log chat ID status
-if (CHAT_ID) {
-  console.log(`✅ CHAT_ID loaded from environment: ${CHAT_ID}`);
-} else {
-  console.log('⚠️ No CHAT_ID in environment. Bot will wait for group messages to set it dynamically.');
-}
+// This will be set dynamically when the bot receives messages from the group
+let CHAT_ID = null;
 
 // Team members
 const TEAM_MEMBERS = ['Khaled', 'Hamad', 'Malil'];
