@@ -1,5 +1,6 @@
 require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
+const fetch = require('node-fetch');
 
 // Load environment variables
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -38,8 +39,10 @@ try {
     global: {
       headers: {
         'Connection': 'keep-alive',
-        'Keep-Alive': 'timeout=30, max=1000'
-      }
+        'Keep-Alive': 'timeout=30, max=1000',
+        'User-Agent': 'Somah-Backend/1.0.0'
+      },
+      fetch: fetch
     }
   });
   console.log('✅ Supabase client created successfully');
