@@ -1,12 +1,6 @@
 const express = require('express');
 const { supabaseAdmin } = require('../config/database');
-const { createClient } = require('@supabase/supabase-js');
 const router = express.Router();
-
-// Create Supabase client for auth operations
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 /**
  * Stores Management Routes
