@@ -114,6 +114,9 @@ app.get('/ready', async (req, res) => {
 // API Routes - All database operations go through backend
 app.use('/api', require('./routes'));
 
+// Also mount routes at root for compatibility
+app.use('/', require('./routes'));
+
 // Telegram webhook endpoint (if needed)
 app.post('/webhook/telegram', (req, res) => {
   if (bot) {
