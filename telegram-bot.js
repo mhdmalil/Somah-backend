@@ -13,8 +13,32 @@ if (!botToken) {
   process.exit(1);
 }
 
-// Initialize bot
-const bot = new TelegramBot(botToken, { polling: true });
+// Initialize bot with error handling
+let bot;
+try {
+  console.log('🤖 Initializing Telegram bot...');
+  bot = new TelegramBot(botToken, { 
+    polling: {
+      interval: 1000,
+      autoStart: true,
+      params: {
+        timeout: 10
+      }
+    }
+  });
+  
+  // Handle polling errors
+  bot.on('polling_error', (error) => {
+    console.error('⚠️ Telegram polling error:', error.message);
+    // Don't exit on polling errors, just log them
+  });
+  
+  console.log('✅ Telegram bot initialized successfully');
+} catch (error) {
+  console.error('❌ Failed to initialize Telegram bot:', error);
+  // Don't exit the process, just disable bot functionality
+  bot = null;
+}
 
 // This will be set dynamically when the bot receives messages from the group
 let CHAT_ID = null;
@@ -169,6 +193,12 @@ function createHandledKeyboard(handler) {
  */
 async function sendOrderNotification(orderId) {
   try {
+    // Check if bot is available
+    if (!bot) {
+      console.warn('⚠️ Telegram bot not available. Skipping notification...');
+      return;
+    }
+    
     // Check if we have a chat ID
     if (!CHAT_ID) {
       console.warn('⚠️ No CHAT_ID set yet. Waiting for bot to be added to a group...');
