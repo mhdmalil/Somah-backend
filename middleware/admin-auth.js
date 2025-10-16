@@ -1,11 +1,11 @@
-import { supabaseAdmin } from '../supabase';
-import { compare } from 'bcrypt';
+const { supabaseAdmin } = require('../config/database');
+const bcrypt = require('bcrypt');
 
 /**
  * Middleware to authenticate admin users
  * This should be used on all admin API routes
  */
-export async function adminAuthMiddleware(req, res, next) {
+async function adminAuthMiddleware(req, res, next) {
   // Check for Authorization header
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Basic ')) {
@@ -30,7 +30,7 @@ export async function adminAuthMiddleware(req, res, next) {
     }
 
     // Verify password
-    const passwordValid = await compare(password, admin.password_hash);
+    const passwordValid = await bcrypt.compare(password, admin.password_hash);
     if (!passwordValid) {
       return res.status(401).json({ error: 'Unauthorized: Invalid credentials' });
     }
@@ -57,3 +57,5 @@ export async function adminAuthMiddleware(req, res, next) {
     return res.status(500).json({ error: 'Internal server error during authentication' });
   }
 }
+
+module.exports = { adminAuthMiddleware };
