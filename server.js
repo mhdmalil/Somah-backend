@@ -177,11 +177,24 @@ app.use('*', (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`🚀 Telegram Bot Server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`✅ Readiness check: http://localhost:${PORT}/ready`);
   console.log(`🤖 Telegram bot: ${bot ? 'Connected' : 'Disconnected'}`);
+  
+  // Test database connection after server starts
+  console.log('🔍 Testing database connection...');
+  try {
+    const dbHealthy = await checkConnection();
+    if (dbHealthy) {
+      console.log('✅ Database connection test successful');
+    } else {
+      console.error('❌ Database connection test failed');
+    }
+  } catch (error) {
+    console.error('❌ Database connection test error:', error);
+  }
 });
 
 // Graceful shutdown

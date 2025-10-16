@@ -43,20 +43,6 @@ try {
     }
   });
   console.log('✅ Supabase client created successfully');
-  
-  // Test the connection immediately
-  console.log('🔍 Testing database connection...');
-  const { data, error } = await supabaseAdmin
-    .from('users')
-    .select('count')
-    .limit(1);
-  
-  if (error) {
-    console.error('❌ Database connection test failed:', error);
-    process.exit(1);
-  } else {
-    console.log('✅ Database connection test successful');
-  }
 } catch (error) {
   console.error('❌ Failed to create Supabase client:', error);
   process.exit(1);
