@@ -40,7 +40,12 @@ router.get('/', async (req, res) => {
     
     if (error) {
       console.error('Stores fetch error:', error);
-      return res.status(500).json({ error: 'Failed to fetch stores' });
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      return res.status(500).json({ 
+        error: 'Failed to fetch stores',
+        details: error.message,
+        code: error.code
+      });
     }
     
     res.json(stores || []);

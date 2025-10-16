@@ -97,6 +97,38 @@ app.get('/health', async (req, res) => {
   }
 });
 
+// Test database endpoint
+app.get('/test-db', async (req, res) => {
+  try {
+    console.log('Testing database connection...');
+    const { data, error } = await supabaseAdmin
+      .from('stores')
+      .select('count')
+      .limit(1);
+    
+    if (error) {
+      console.error('Database test error:', error);
+      return res.status(500).json({ 
+        error: 'Database test failed',
+        details: error.message,
+        code: error.code
+      });
+    }
+    
+    res.json({ 
+      status: 'success',
+      message: 'Database connection working',
+      data: data
+    });
+  } catch (error) {
+    console.error('Database test catch error:', error);
+    res.status(500).json({ 
+      error: 'Database test failed',
+      details: error.message
+    });
+  }
+});
+
 // Readiness check endpoint
 app.get('/ready', async (req, res) => {
   try {
