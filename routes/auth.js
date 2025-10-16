@@ -5,13 +5,15 @@ const router = express.Router();
 
 // Create Supabase client for auth operations
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('❌ ERROR: Missing Supabase auth environment variables!');
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('❌ ERROR: Missing Supabase environment variables!');
+  console.error('Required: SUPABASE_URL and SUPABASE_SERVICE_KEY');
+  process.exit(1);
 }
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 /**
  * User Authentication Routes
