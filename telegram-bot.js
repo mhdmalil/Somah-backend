@@ -37,10 +37,9 @@ async function formatOrderMessage(order, handledBy = null) {
     storeGroups[item.store_name].push(item);
   });
   
-  // Calculate commission (subtract 20 AED delivery fee first, then 5% commission)
-  const amountAfterDeliveryFee = order.total_amount - 20; // Remove delivery fee
-  const commission = (amountAfterDeliveryFee * 0.05).toFixed(2);
-  const storePayout = (amountAfterDeliveryFee - commission).toFixed(2);
+  // Calculate commission (5% commission on total amount)
+  const commission = (order.total_amount * 0.05).toFixed(2);
+  const storePayout = (order.total_amount - commission).toFixed(2);
   
   // Build message
   let message = `🛍️ <b>NEW ORDER #${order.order_number}</b>\n`;
@@ -50,6 +49,8 @@ async function formatOrderMessage(order, handledBy = null) {
   message += `👤 <b>CUSTOMER DETAILS:</b>\n`;
   message += `Name: ${order.full_name}\n`;
   message += `Phone: ${order.phone}\n`;
+  message += `Customer Number: ${order.customer_addresses?.phone || 'Not provided'}\n`;
+  message += `Customer ID: ${order.customer_id}\n`;
   message += `Address: ${order.address_line1}`;
   if (order.address_line2) message += `, ${order.address_line2}`;
   message += `\n${order.city}, ${order.emirate}\n\n`;
@@ -67,7 +68,6 @@ async function formatOrderMessage(order, handledBy = null) {
   // Financial Breakdown
   message += `💰 <b>FINANCIAL BREAKDOWN:</b>\n`;
   message += `Total Amount: AED ${order.total_amount} (includes 20 AED delivery fee)\n`;
-  message += `After Delivery Fee: AED ${amountAfterDeliveryFee}\n`;
   message += `5% Commission: AED ${commission} (Somah)\n`;
   message += `Store Payout: AED ${storePayout}\n\n`;
   
@@ -82,17 +82,43 @@ async function formatOrderMessage(order, handledBy = null) {
     }
   });
   
-  // Fetch store location details for each store
+  // Fetch store location and contact details for each store
   for (const [storeId, storeName] of Object.entries(uniqueStores)) {
-    // Try to get store location data
+    // Get store location data
     const { data: storeLocation } = await supabaseAdmin
       .from('store_locations')
       .select('*')
       .eq('store_id', storeId)
       .single();
     
-    message += `<b>${storeName}:</b>\n`;
+    // Get store contact details
+    const { data: storeDetails } = await supabaseAdmin
+      .from('stores')
+      .select(`
+        id,
+        name,
+        phone,
+        users!inner(
+          id,
+          name,
+          phone
+        )
+      `)
+      .eq('id', storeId)
+      .single();
     
+    message += `<b>${storeName} (ID: ${storeId}):</b>\n`;
+    
+    // Store contact details
+    if (storeDetails) {
+      message += `📞 Store Phone: ${storeDetails.phone || 'Not provided'}\n`;
+      message += `👤 Owner: ${storeDetails.users?.name || 'Unknown'}\n`;
+      if (storeDetails.users?.phone) {
+        message += `📱 Owner Phone: ${storeDetails.users.phone}\n`;
+      }
+    }
+    
+    // Store location details
     if (storeLocation && storeLocation.location_type) {
       message += `📍 ${storeLocation.location_type.charAt(0).toUpperCase() + storeLocation.location_type.slice(1)}\n`;
       message += `🏠 ${storeLocation.street_number} ${storeLocation.street_name}\n`;
@@ -101,9 +127,7 @@ async function formatOrderMessage(order, handledBy = null) {
         message += `📝 ${storeLocation.additional_info}\n`;
       }
     } else {
-      // If no location found, show a generic message
-      message += `📍 Store Location: Contact store owner for pickup details\n`;
-      message += `📞 Store Contact: Available in store management\n`;
+      message += `📍 Location: Contact store owner for pickup details\n`;
     }
     message += `\n`;
   }
@@ -175,7 +199,7 @@ async function sendOrderNotification(orderId) {
       return;
     }
     
-    // Fetch order details with items
+    // Fetch order details with items and customer address
     const { data: order, error } = await supabaseAdmin
       .from('orders')
       .select(`
@@ -188,6 +212,9 @@ async function sendOrderNotification(orderId) {
           store_name,
           store_id,
           image_url
+        ),
+        customer_addresses!inner(
+          phone
         )
       `)
       .eq('id', orderId)
@@ -275,6 +302,9 @@ bot.on('callback_query', async (callbackQuery) => {
           original_price,
           store_name,
           store_id
+        ),
+        customer_addresses!inner(
+          phone
         )
       `)
       .eq('id', orderId)
