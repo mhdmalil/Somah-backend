@@ -1,5 +1,5 @@
 const { supabaseAdmin } = require('../config/database');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 /**
  * Middleware to authenticate admin users
