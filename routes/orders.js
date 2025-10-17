@@ -254,6 +254,15 @@ router.post('/', async (req, res) => {
       .delete()
       .eq('user_id', userProfile.id);
 
+    // Trigger Telegram notification (database trigger already created the notification record)
+    try {
+      const { sendOrderNotification } = require('../telegram-bot');
+      await sendOrderNotification(order.id);
+    } catch (telegramError) {
+      console.error('Telegram notification error:', telegramError);
+      // Don't fail the order if Telegram fails
+    }
+
     res.json(order);
   } catch (error) {
     console.error('Order POST error:', error);

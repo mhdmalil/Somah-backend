@@ -106,28 +106,45 @@ async function formatOrderMessage(order, handledBy = null) {
     }
   });
   
-  // Fetch store location details for each store
+  // Fetch store details (including phone and location) for each store
   for (const [storeId, storeName] of Object.entries(uniqueStores)) {
-    // Try to get store location data
-    const { data: storeLocation } = await supabaseAdmin
-      .from('store_locations')
-      .select('*')
-      .eq('store_id', storeId)
+    // Get store details including phone number
+    const { data: storeDetails } = await supabaseAdmin
+      .from('stores')
+      .select(`
+        phone,
+        store_locations (
+          location_type,
+          street_name,
+          place_name,
+          street_number,
+          additional_info
+        )
+      `)
+      .eq('id', storeId)
       .single();
     
     message += `<b>${storeName}:</b>\n`;
     
-    if (storeLocation && storeLocation.location_type) {
-      message += `📍 ${storeLocation.location_type.charAt(0).toUpperCase() + storeLocation.location_type.slice(1)}\n`;
-      message += `🏠 ${storeLocation.street_number} ${storeLocation.street_name}\n`;
-      message += `📍 ${storeLocation.place_name}\n`;
-      if (storeLocation.additional_info) {
-        message += `📝 ${storeLocation.additional_info}\n`;
+    // Add store phone number
+    if (storeDetails && storeDetails.phone) {
+      message += `📞 Phone: ${storeDetails.phone}\n`;
+    } else {
+      message += `📞 Phone: Contact store owner\n`;
+    }
+    
+    // Add store location details
+    if (storeDetails && storeDetails.store_locations && storeDetails.store_locations.length > 0) {
+      const location = storeDetails.store_locations[0];
+      message += `📍 ${location.location_type.charAt(0).toUpperCase() + location.location_type.slice(1)}\n`;
+      message += `🏠 ${location.street_number} ${location.street_name}\n`;
+      message += `📍 ${location.place_name}\n`;
+      if (location.additional_info) {
+        message += `📝 ${location.additional_info}\n`;
       }
     } else {
       // If no location found, show a generic message
-      message += `📍 Store Location: Contact store owner for pickup details\n`;
-      message += `📞 Store Contact: Available in store management\n`;
+      message += `📍 Location: Contact store owner for pickup details\n`;
     }
     message += `\n`;
   }
