@@ -102,7 +102,7 @@ app.get('/test-db', async (req, res) => {
   try {
     console.log('Testing database connection...');
     const { data, error } = await supabaseAdmin
-      .from('stores')
+        .from('stores')
       .select('count')
       .limit(1);
     

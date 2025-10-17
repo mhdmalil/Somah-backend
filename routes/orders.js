@@ -1,12 +1,6 @@
 const express = require('express');
 const { supabaseAdmin } = require('../config/database');
-const { createClient } = require('@supabase/supabase-js');
 const router = express.Router();
-
-// Create Supabase client for auth operations
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 /**
  * Orders Management Routes
@@ -22,7 +16,7 @@ router.get('/', async (req, res) => {
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
     
     if (error || !user) {
       return res.json([]);
@@ -80,7 +74,7 @@ router.get('/:id', async (req, res) => {
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
     
     if (error || !user) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -139,7 +133,7 @@ router.post('/', async (req, res) => {
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
     
     if (error || !user) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -276,7 +270,7 @@ router.put('/:id/status', async (req, res) => {
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
     
     if (error || !user) {
       return res.status(401).json({ error: 'Unauthorized' });
