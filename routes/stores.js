@@ -181,7 +181,7 @@ router.post('/', async (req, res) => {
       return res.status(404).json({ error: 'User profile not found' });
     }
 
-    const { name, description, category, phone, logo, banner, location } = req.body;
+    const { name, description, category, phone, logo, banner, location, locationType, streetName, placeName, streetNumber, locationNotes } = req.body;
 
     if (!name || !description || !category || !phone) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -208,22 +208,35 @@ router.post('/', async (req, res) => {
       return res.status(500).json({ error: 'Failed to create store' });
     }
 
-    // Create store location if provided
-    if (location && location.locationType && location.streetName && location.placeName && location.streetNumber) {
+    // Create store location if provided (handle both object and individual field formats)
+    const locationData = location || {
+      locationType,
+      streetName,
+      placeName,
+      streetNumber,
+      locationNotes
+    };
+    
+    if (locationData && locationData.locationType && locationData.streetName && locationData.placeName && locationData.streetNumber) {
       const { error: locationError } = await supabaseAdmin
         .from('store_locations')
         .insert({
           store_id: store.id,
-          location_type: location.locationType,
-          street_name: location.streetName,
-          place_name: location.placeName,
-          street_number: location.streetNumber,
-          additional_info: location.locationNotes || null
+          location_type: locationData.locationType,
+          street_name: locationData.streetName,
+          place_name: locationData.placeName,
+          street_number: locationData.streetNumber,
+          additional_info: locationData.locationNotes || null
         });
       
       if (locationError) {
         console.error('Store location creation error:', locationError);
+        console.error('Location data:', locationData);
+      } else {
+        console.log('✅ Store location created successfully');
       }
+    } else {
+      console.log('⚠️ Store location not created - missing required fields:', locationData);
     }
 
     res.json(store);
@@ -260,7 +273,7 @@ router.put('/:id', async (req, res) => {
     }
 
     const { id } = req.params;
-    const { name, description, category, phone, logo, banner, location } = req.body;
+    const { name, description, category, phone, logo, banner, location, locationType, streetName, placeName, streetNumber, locationNotes } = req.body;
 
     // Verify user owns the store
     const { data: store } = await supabaseAdmin
@@ -294,8 +307,16 @@ router.put('/:id', async (req, res) => {
       return res.status(500).json({ error: 'Failed to update store' });
     }
 
-    // Update store location if provided
-    if (location && location.locationType && location.streetName && location.placeName && location.streetNumber) {
+    // Update store location if provided (handle both object and individual field formats)
+    const locationData = location || {
+      locationType,
+      streetName,
+      placeName,
+      streetNumber,
+      locationNotes
+    };
+    
+    if (locationData && locationData.locationType && locationData.streetName && locationData.placeName && locationData.streetNumber) {
       // Check if location already exists
       const { data: existingLocation } = await supabaseAdmin
         .from('store_locations')
@@ -308,17 +329,19 @@ router.put('/:id', async (req, res) => {
         const { error: locationUpdateError } = await supabaseAdmin
           .from('store_locations')
           .update({
-            location_type: location.locationType,
-            street_name: location.streetName,
-            place_name: location.placeName,
-            street_number: location.streetNumber,
-            additional_info: location.locationNotes || null,
+            location_type: locationData.locationType,
+            street_name: locationData.streetName,
+            place_name: locationData.placeName,
+            street_number: locationData.streetNumber,
+            additional_info: locationData.locationNotes || null,
             updated_at: new Date().toISOString()
           })
           .eq('store_id', id);
 
         if (locationUpdateError) {
           console.error('Store location update error:', locationUpdateError);
+        } else {
+          console.log('✅ Store location updated successfully');
         }
       } else {
         // Create new location
@@ -326,15 +349,17 @@ router.put('/:id', async (req, res) => {
           .from('store_locations')
           .insert({
             store_id: id,
-            location_type: location.locationType,
-            street_name: location.streetName,
-            place_name: location.placeName,
-            street_number: location.streetNumber,
-            additional_info: location.locationNotes || null
+            location_type: locationData.locationType,
+            street_name: locationData.streetName,
+            place_name: locationData.placeName,
+            street_number: locationData.streetNumber,
+            additional_info: locationData.locationNotes || null
           });
 
         if (locationCreateError) {
           console.error('Store location creation error:', locationCreateError);
+        } else {
+          console.log('✅ Store location created successfully');
         }
       }
     }
