@@ -43,7 +43,31 @@ router.get('/me', async (req, res) => {
       .single();
 
     if (profileError) {
-      return res.status(404).json({ error: 'User profile not found' });
+      // If profile doesn't exist, create it automatically
+      const { data: newProfile, error: createError } = await supabaseAdmin
+        .from('users')
+        .insert({
+          auth_id: user.id,
+          name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+          email: user.email,
+          phone: user.user_metadata?.phone || null,
+          avatar_url: user.user_metadata?.avatar_url || null
+        })
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('Auto-create profile error:', createError);
+        return res.status(500).json({ error: 'Failed to create user profile' });
+      }
+
+      return res.json({
+        user: {
+          id: user.id,
+          email: user.email,
+          ...newProfile
+        }
+      });
     }
 
     res.json({
