@@ -58,6 +58,44 @@ router.get('/me', async (req, res) => {
 
       if (createError) {
         console.error('Auto-create profile error:', createError);
+        
+        // Handle duplicate key errors
+        if (createError.code === '23505') {
+          if (createError.details?.includes('email')) {
+            return res.status(409).json({ error: 'Email already exists' });
+          }
+          if (createError.details?.includes('auth_id')) {
+            return res.status(409).json({ error: 'User profile already exists' });
+          }
+          if (createError.details?.includes('name')) {
+            // Try with a unique name by adding timestamp
+            const uniqueName = `${user.user_metadata?.name || user.email?.split('@')[0] || 'User'}_${Date.now()}`;
+            const { data: retryProfile, error: retryError } = await supabaseAdmin
+              .from('users')
+              .insert({
+                auth_id: user.id,
+                name: uniqueName,
+                email: user.email,
+                phone: user.user_metadata?.phone || null,
+                avatar_url: user.user_metadata?.avatar_url || null
+              })
+              .select()
+              .single();
+
+            if (retryError) {
+              return res.status(500).json({ error: 'Failed to create user profile' });
+            }
+
+            return res.json({
+              user: {
+                id: user.id,
+                email: user.email,
+                ...retryProfile
+              }
+            });
+          }
+        }
+        
         return res.status(500).json({ error: 'Failed to create user profile' });
       }
 
