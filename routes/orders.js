@@ -113,7 +113,16 @@ router.get('/:id', async (req, res) => {
       .eq('customer_id', userProfile.id)
       .single();
 
-    if (orderError || !order) {
+    if (orderError) {
+      console.error('Error fetching order:', orderError);
+      if (orderError.code === 'PGRST116') {
+        // No rows found - order doesn't exist
+        return res.status(404).json({ error: 'Order not found' });
+      }
+      return res.status(500).json({ error: 'Failed to fetch order' });
+    }
+
+    if (!order) {
       return res.status(404).json({ error: 'Order not found' });
     }
 
