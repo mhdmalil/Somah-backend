@@ -61,8 +61,8 @@ async function formatOrderMessage(order, handledBy = null) {
     storeGroups[item.store_name].push(item);
   });
   
-  // Calculate commission (subtract 20 AED delivery fee first, then 5% commission)
-  const amountAfterDeliveryFee = order.total_amount - 20; // Remove delivery fee
+  // Calculate commission (subtract 5 AED delivery fee first, then 5% commission)
+  const amountAfterDeliveryFee = order.total_amount - 5; // Remove delivery fee
   const commission = (amountAfterDeliveryFee * 0.05).toFixed(2);
   const storePayout = (amountAfterDeliveryFee - commission).toFixed(2);
   
@@ -90,7 +90,7 @@ async function formatOrderMessage(order, handledBy = null) {
   
   // Financial Breakdown
   message += `💰 <b>FINANCIAL BREAKDOWN:</b>\n`;
-  message += `Total Amount: AED ${order.total_amount} (includes 20 AED delivery fee)\n`;
+  message += `Total Amount: AED ${order.total_amount} (includes 5 AED delivery fee)\n`;
   message += `After Delivery Fee: AED ${amountAfterDeliveryFee}\n`;
   message += `5% Commission: AED ${commission} (Somah)\n`;
   message += `Store Payout: AED ${storePayout}\n\n`;

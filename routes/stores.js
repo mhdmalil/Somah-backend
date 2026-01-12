@@ -142,10 +142,10 @@ router.get('/:id/products', async (req, res) => {
       return res.status(500).json({ error: 'Failed to fetch products' });
     }
     
-    // Add 20 AED delivery fee to all product prices for display
+    // Add 5 AED delivery fee to all product prices for display
     const productsWithDeliveryFee = (products || []).map(product => ({
       ...product,
-      price: Math.round((product.price + 20) * 100) / 100
+      price: Math.round((product.price + 5) * 100) / 100
     }));
     
     res.json(productsWithDeliveryFee);
@@ -191,7 +191,7 @@ router.post('/', async (req, res) => {
     const { data: store, error: storeError } = await supabaseAdmin
       .from('stores')
       .insert({
-        owner_id: userProfile.id,
+        owner_id: userProfile.id,   
         name,
         description,
         category,

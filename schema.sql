@@ -144,7 +144,7 @@ CREATE TABLE orders (
     country VARCHAR(255) NOT NULL DEFAULT 'UAE',
     -- Order details
     subtotal DECIMAL(10,2) NOT NULL, -- Before delivery fee (store owner's amount)
-    delivery_fee DECIMAL(10,2) NOT NULL DEFAULT 20.00,
+    delivery_fee DECIMAL(10,2) NOT NULL DEFAULT 5.00,
     total_amount DECIMAL(10,2) NOT NULL, -- subtotal + delivery_fee
     status VARCHAR(50) NOT NULL DEFAULT 'pending', -- "pending", "confirmed", "shipped", "delivered", "cancelled"
     payment_method VARCHAR(50) NOT NULL DEFAULT 'cash_on_delivery',
