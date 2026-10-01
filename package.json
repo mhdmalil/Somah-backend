@@ -1,13 +1,14 @@
 {
-  "name": "somah-land-backend",
-  "version": "1.0.0",
-  "description": "Backend services for Somah Land e-commerce platform",
-  "main": "index.js",
+  "name": "somahland-backend",
+  "version": "2.0.0",
+  "description": "SOMAHLAND auto parts API (Node.js + TypeScript)",
+  "main": "dist/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
-    "bot": "node telegram-bot.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "bot": "tsx src/services/telegram.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
@@ -19,10 +20,18 @@
     "express-rate-limit": "^7.1.5",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
-    "node-fetch": "^2.7.0",
-    "node-telegram-bot-api": "^0.66.0"
+    "node-telegram-bot-api": "^0.66.0",
+    "zod": "^3.25.67"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "@types/bcryptjs": "^2.4.6",
+    "@types/compression": "^1.8.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.25",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^22.20.4",
+    "@types/node-telegram-bot-api": "^0.64.15",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
   }
 }
