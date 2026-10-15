@@ -16,6 +16,50 @@ CREATE TABLE IF NOT EXISTS public.waitlist_signups (
 CREATE UNIQUE INDEX IF NOT EXISTS waitlist_signups_email_lower
     ON public.waitlist_signups (lower(email));
 
+CREATE OR REPLACE FUNCTION public.normalize_waitlist_phone(raw text)
+RETURNS text
+LANGUAGE plpgsql
+IMMUTABLE
+STRICT
+AS $$
+DECLARE
+  d text;
+BEGIN
+  d := regexp_replace(raw, '[^0-9]', '', 'g');
+  d := regexp_replace(d, '^00', '');
+  IF length(d) < 7 OR length(d) > 15 THEN
+    RETURN NULL;
+  END IF;
+  IF d LIKE '9710%' AND length(d) >= 12 THEN
+    d := '971' || substr(d, 5);
+  ELSIF d LIKE '0%' AND length(d) = 10 THEN
+    d := '971' || substr(d, 2);
+  ELSIF length(d) = 9 AND d LIKE '5%' THEN
+    d := '971' || d;
+  END IF;
+  IF length(d) < 7 OR length(d) > 15 THEN
+    RETURN NULL;
+  END IF;
+  RETURN d;
+END;
+$$;
+
+ALTER TABLE public.waitlist_signups
+    ADD COLUMN IF NOT EXISTS phone_normalized text
+    GENERATED ALWAYS AS (public.normalize_waitlist_phone(phone)) STORED;
+
+CREATE UNIQUE INDEX IF NOT EXISTS waitlist_signups_phone_normalized_key
+    ON public.waitlist_signups (phone_normalized);
+
+DO $$
+BEGIN
+    ALTER TABLE public.waitlist_signups
+        ADD CONSTRAINT waitlist_signups_phone_normalized_required
+        CHECK (phone_normalized IS NOT NULL);
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
+
 ALTER TABLE public.waitlist_signups ENABLE ROW LEVEL SECURITY;
 
 REVOKE ALL ON TABLE public.waitlist_signups FROM anon, authenticated;

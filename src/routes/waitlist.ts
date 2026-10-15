@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../config/database';
 import { asyncHandler, validateBody } from '../middleware/validate';
+import { normalizeWaitlistPhone } from '../utils/waitlist-phone';
 
 const router = Router();
 
@@ -29,6 +30,11 @@ router.post(
     }
 
     const normalizedEmail = email.toLowerCase();
+    const normalizedPhone = normalizeWaitlistPhone(phone);
+    if (!normalizedPhone) {
+      res.status(400).json({ error: 'Enter a valid phone number.' });
+      return;
+    }
 
     const { error } = await db.from('waitlist_signups').insert({
       name,
