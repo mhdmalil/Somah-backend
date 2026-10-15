@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { db } from '../config/database';
 import { AuthedRequest, requireCustomer } from '../middleware/auth';
 import { asyncHandler, validateBody } from '../middleware/validate';
+import { getVehicleService } from '../services/vehicle';
 
 const router = Router();
 
@@ -94,17 +95,32 @@ router.delete(
   })
 );
 
-/** Placeholder for future VIN provider */
+/**
+ * VIN lookup via VehicleService → VehicleProvider.
+ * Null provider returns gracefully — never crashes the storefront.
+ * No provider credentials in frontend; none required until approved.
+ */
 router.post(
   '/vin-lookup',
   requireCustomer,
   validateBody(z.object({ vin: z.string().min(11).max(32) })),
   asyncHandler(async (req, res) => {
-    res.status(501).json({
-      error: 'VIN lookup not configured',
-      message: 'VIN API will be connected when you provide the provider credentials.',
-      vin: req.body.vin,
-      status: 'verification_required',
+    const service = getVehicleService();
+    const result = await service.decodeVIN(req.body.vin);
+    if (!result.ok) {
+      res.status(result.providerUnavailable ? 503 : 501).json({
+        error: result.message || 'VIN lookup not configured',
+        message: result.message,
+        vin: req.body.vin,
+        status: 'verification_required',
+        provider: service.getProviderName(),
+      });
+      return;
+    }
+    res.json({
+      vehicle: result.vehicle,
+      status: 'provider_decoded',
+      provider: service.getProviderName(),
     });
   })
 );

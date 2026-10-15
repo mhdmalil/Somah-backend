@@ -4,7 +4,6 @@ import { db } from '../config/database';
 import { env } from '../config/env';
 import { AuthedRequest, requireAdmin, requireCustomer } from '../middleware/auth';
 import { asyncHandler, validateBody } from '../middleware/validate';
-import { sendOrderNotification } from '../services/telegram';
 
 const router = Router();
 
@@ -272,9 +271,6 @@ router.post(
     }
 
     await db.from('cart_items').delete().eq('customer_id', customerId);
-
-    // Telegram outbox trigger already inserted; also attempt immediate send
-    void sendOrderNotification(order.id);
 
     const { data: full } = await db
       .from('orders')

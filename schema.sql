@@ -1,15 +1,15 @@
 -- SOMAHLAND schema (retail auto parts)
--- DESTRUCTIVE: wipes legacy marketplace tables. Backup first.
--- Telegram outbox pattern preserved and adapted for single-retailer orders.
+-- DESTRUCTIVE for SOMAHLAND retail tables. Backup first.
+-- Marketplace leftover tables and Telegram outbox are not part of this schema.
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
--- Drop legacy + new tables (safe re-run)
-DROP TABLE IF EXISTS favorites CASCADE;
-DROP TABLE IF EXISTS manual_payouts CASCADE;
-DROP TABLE IF EXISTS store_locations CASCADE;
+-- Drop leftover Telegram objects if an older schema was applied
+DROP FUNCTION IF EXISTS create_order_notification() CASCADE;
 DROP TABLE IF EXISTS telegram_notifications CASCADE;
+
+-- Drop retail tables (safe re-run)
 DROP TABLE IF EXISTS order_status_history CASCADE;
 DROP TABLE IF EXISTS order_items CASCADE;
 DROP TABLE IF EXISTS orders CASCADE;
@@ -21,8 +21,6 @@ DROP TABLE IF EXISTS categories CASCADE;
 DROP TABLE IF EXISTS customer_vehicles CASCADE;
 DROP TABLE IF EXISTS customer_addresses CASCADE;
 DROP TABLE IF EXISTS customers CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
-DROP TABLE IF EXISTS stores CASCADE;
 DROP TABLE IF EXISTS ad_slots CASCADE;
 DROP TABLE IF EXISTS admins CASCADE;
 
@@ -235,19 +233,6 @@ CREATE TABLE order_status_history (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Telegram outbox (preserved pattern)
-CREATE TABLE telegram_notifications (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
-    notification_type VARCHAR(50) NOT NULL DEFAULT 'new_order',
-    message TEXT NOT NULL,
-    sent BOOLEAN NOT NULL DEFAULT FALSE,
-    sent_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX idx_telegram_sent ON telegram_notifications(sent, created_at);
-
 -- Homepage / listing ad placements
 CREATE TABLE ad_slots (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -312,25 +297,6 @@ BEGIN
   RETURN 'SOMAH-' || timestamp_part || random_part;
 END;
 $$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION create_order_notification()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO telegram_notifications(order_id, notification_type, message, sent)
-  VALUES (
-    NEW.id,
-    'new_order',
-    'New SOMAHLAND order #' || NEW.order_number || ' created',
-    FALSE
-  );
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_order_notification
-AFTER INSERT ON orders
-FOR EACH ROW
-EXECUTE FUNCTION create_order_notification();
 
 CREATE OR REPLACE FUNCTION track_order_status()
 RETURNS TRIGGER AS $$

@@ -29,6 +29,10 @@ export const env = {
   adminEmail: optional('ADMIN_EMAIL'),
   adminPassword: optional('ADMIN_PASSWORD'),
   adminName: optional('ADMIN_NAME', 'SOMAHLAND Admin'),
-  telegramBotToken: optional('TELEGRAM_BOT_TOKEN'),
-  telegramChatId: optional('TELEGRAM_CHAT_ID'),
+  /** Vehicle identity provider (optional until approved). Never put these in frontend. */
+  vehicleApiKey: optional('VEHICLE_API_KEY'),
+  vehicleApiUrl: optional('VEHICLE_API_URL'),
+  /** Fitment provider — separate from VIN/vehicle identity. */
+  fitmentApiKey: optional('FITMENT_API_KEY'),
+  fitmentApiUrl: optional('FITMENT_API_URL'),
 };

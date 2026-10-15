@@ -5,7 +5,6 @@ import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import { env } from './config/env';
 import routes, { bootstrapAdmin } from './routes';
-import { startTelegramWorker } from './services/telegram';
 
 const app = express();
 
@@ -77,7 +76,6 @@ app.use(
 
 async function start(): Promise<void> {
   await bootstrapAdmin();
-  startTelegramWorker();
 
   app.listen(env.port, () => {
     console.log(`SOMAHLAND API listening on :${env.port}`);
