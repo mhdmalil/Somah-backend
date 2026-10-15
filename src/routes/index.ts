@@ -8,6 +8,7 @@ import vehicleRoutes from './vehicles';
 import cartRoutes from './cart';
 import orderRoutes from './orders';
 import adRoutes from './ads';
+import waitlistRoutes from './waitlist';
 
 const router = Router();
 
@@ -20,6 +21,7 @@ router.use('/vehicles', vehicleRoutes);
 router.use('/cart', cartRoutes);
 router.use('/orders', orderRoutes);
 router.use('/ads', adRoutes);
+router.use('/waitlist', waitlistRoutes);
 
 export { bootstrapAdmin };
 export default router;

@@ -1,6 +1,7 @@
 -- SOMAHLAND schema (retail auto parts)
 -- DESTRUCTIVE for SOMAHLAND retail tables. Backup first.
 -- Marketplace leftover tables and Telegram outbox are not part of this schema.
+-- Do NOT DROP waitlist_signups — launch waitlist lives in the same database.
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";

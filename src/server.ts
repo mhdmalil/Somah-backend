@@ -51,6 +51,7 @@ app.use(generalLimiter);
 app.use('/auth/login', authLimiter);
 app.use('/auth/register', authLimiter);
 app.use('/admin/login', authLimiter);
+app.use('/waitlist', authLimiter);
 
 app.get('/health', (_req, res) => {
   res.json({ ok: true, service: 'somahland-api', env: env.nodeEnv });
